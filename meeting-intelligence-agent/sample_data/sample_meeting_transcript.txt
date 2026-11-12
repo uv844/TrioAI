@@ -1,0 +1,146 @@
+TECHNOVA SOLUTIONS PROJECT PLANNING MEETING — SAMPLE TRANSCRIPT
+Fictional training data only | Meeting date: 12 November 2026 Duration:
+approximately 15 minutes
+
+PARTICIPANTS Maya — Project Manager Arjun — Backend Developer Neha —
+Frontend Developer Kabir — QA Engineer
+
+[00:00] Maya (Project Manager): Good morning, everyone. The purpose of
+today’s meeting is to agree on the next sprint plan for the
+customer-support portal. We need to confirm the scope, owners,
+deadlines, testing approach, and deployment target. This is a fictional
+sample meeting for demonstrating the meeting RAG feature.
+
+[00:42] Arjun (Backend Developer): From the backend side, the
+authentication endpoints are complete. I have finished login, logout,
+and refresh-token handling. The remaining work is the ticket search API
+and the endpoint that returns ticket details with their comments. I
+estimate two working days for both endpoints, provided the database
+schema stays unchanged.
+
+[01:35] Neha (Frontend Developer): The login screen and main dashboard
+are ready. I am currently connecting the ticket list to the API. I need
+the final response shape from Arjun before I can finish pagination and
+filtering. If the response contract is shared today, I can complete the
+integration by Monday afternoon.
+
+[02:20] Maya: Let’s make that an action item. Arjun will publish the API
+contract and example JSON responses by 4 PM today. Neha will use that
+contract and complete the ticket-list integration by Monday, 16
+November. Please raise a blocker in the project channel if the contract
+changes after today.
+
+[03:05] Kabir (QA Engineer): I reviewed the current build. The login
+flow passes the basic happy-path test, but we still need negative tests
+for an incorrect password, an expired refresh token, and a locked
+account. For ticket search, I will need test data covering open, closed,
+and high-priority tickets. I also recommend checking empty search
+results and special characters in the search field.
+
+[04:00] Arjun: I can prepare a small seed dataset with twelve tickets.
+It will include four open tickets, five closed tickets, and three
+high-priority tickets. I will keep the dataset synthetic and avoid using
+customer information. I can provide it by Friday morning.
+
+[04:40] Maya: Good. We will not use production customer data in this
+development or demonstration environment. All examples, recordings, and
+test records must be synthetic or approved for use. Kabir, please
+prepare the test cases from the API contract and seed data.
+
+[05:15] Kabir: I will prepare the test cases by Monday morning. I will
+cover authentication, ticket search, pagination, filtering by status,
+and ticket-detail comments. I will also run a regression test on the
+existing login and dashboard flows after the new API integration is
+merged.
+
+[06:05] Neha: One dependency is the empty-state design. When a user
+searches and no ticket matches, the page should show a clear message and
+a button to clear the filters. I can finish that along with pagination.
+I also need confirmation whether the priority filter uses the values
+low, medium, and high.
+
+[06:45] Maya: Confirmed. The priority values are low, medium, and high.
+The status values are open, in_progress, and closed. Please use those
+exact values in the UI. The empty-state message should say, “No tickets
+match your filters.” The clear-filters button should reset both the
+search text and all selected filters.
+
+[07:30] Arjun: I will document the API contract with those enum values.
+The ticket search endpoint will accept page, page_size, status,
+priority, and search_text. The default page size will be ten, and the
+maximum page size will be fifty. The response will include total_count
+and total_pages so the frontend can render pagination correctly.
+
+[08:15] Maya: Let’s discuss the timeline. Backend API work and
+documentation are due Friday, 13 November, at 5 PM. The frontend
+integration is due Monday, 16 November, at 3 PM. QA test cases are due
+Monday at 11 AM, and the first full regression run is planned for
+Tuesday, 17 November.
+
+[09:00] Kabir: I want to flag one risk. If the API contract changes
+after frontend integration begins, the QA schedule may slip. We should
+freeze the contract after Arjun publishes it. Any later change should be
+discussed in the team channel and documented with its impact.
+
+[09:40] Maya: Agreed. The API contract will be frozen at 5 PM on Friday.
+Emergency changes require approval from me and must include an updated
+example response. We will review open blockers in a fifteen-minute
+stand-up each morning.
+
+[10:20] Neha: For the user interface, I will add loading indicators
+during search and pagination. If the API returns an error, the page
+should show a retry option rather than a blank screen. I will also make
+sure the filters remain selected when the user moves between pages.
+
+[11:00] Arjun: The backend will return standard error responses. A
+validation error will use HTTP 422, an unauthenticated request will use
+401, and an unexpected server error will use 500 with a request
+identifier. Sensitive stack traces will not be returned to the client.
+
+[11:45] Kabir: I will include those error cases in the test plan. I will
+verify that unauthenticated users cannot access ticket details and that
+a user cannot see tickets outside their permitted scope. We should also
+confirm that logs do not contain passwords or access tokens.
+
+[12:30] Maya: Security checks are part of the release criteria. Before
+deployment, we need passing regression tests, no open critical defects,
+a reviewed API contract, and confirmation that the environment uses
+synthetic data. The deployment target for this sprint is the staging
+environment, not production.
+
+[13:10] Neha: I can prepare the frontend build for staging after the
+regression run. I will share the build checklist and verify the
+dashboard, ticket list, filters, pagination, and empty state after
+deployment.
+
+[13:45] Arjun: I will provide the backend deployment notes,
+environment-variable list, and database migration instructions. I will
+not include secrets in the repository. The staging configuration will be
+stored in the approved secret-management location.
+
+[14:20] Maya: To summarize the decisions: the API contract is due Friday
+at 5 PM and then frozen; backend endpoints and synthetic seed data are
+due Friday; frontend integration is due Monday at 3 PM; QA test cases
+are due Monday at 11 AM; regression testing is Tuesday; and the target
+is staging deployment after the release criteria are met.
+
+[14:55] Kabir: I will share the QA checklist by Monday morning and
+report any critical issue immediately. If the regression run finds a
+critical defect, we will hold the staging deployment until it is fixed
+and retested.
+
+[15:15] Maya: Thanks, everyone. I will track the action items and review
+blockers in the daily stand-up. Please update task status before the end
+of each day. Meeting closed.
+
+MEETING NOTES — FACTS TO RETRIEVE • Arjun owns the ticket search API,
+ticket details API, API contract, and synthetic seed dataset. • Neha
+owns frontend ticket-list integration, pagination, filters, loading
+indicators, and empty state. • Kabir owns QA test cases and regression
+testing. • Maya owns sprint coordination, approval of emergency API
+contract changes, and release readiness. • API contract deadline:
+Friday, 13 November 2026, 5 PM. • Frontend integration deadline: Monday,
+16 November 2026, 3 PM. • QA test cases deadline: Monday, 16 November
+2026, 11 AM. • Regression testing: Tuesday, 17 November 2026. •
+Deployment target: staging, not production. • Only synthetic or
+explicitly approved data may be used in development and demos.
