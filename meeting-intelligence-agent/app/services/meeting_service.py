@@ -1,76 +1,60 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
 
-from app.database.fake_db import meetings
-
-
-def create_meeting(meeting_data):
-    meeting_id = len(meetings) + 1
-
-    meetings[meeting_id] = {
-        "id": meeting_id,
-        "title": meeting_data.title,
-        "transcript": meeting_data.transcript
-    }
-
-    return meetings[meeting_id]
+from app.models.meeting_db import MeetingModel
+from app.models.meeting import MeetingCreate
 
 
-def get_all_meetings():
-    return list(meetings.values())
+def create_meeting(db: Session, meeting_data: MeetingCreate):
+    db_meeting = MeetingModel(
+        title=meeting_data.title,
+        transcript=meeting_data.transcript
+    )
+    db.add(db_meeting)
+    db.commit()
+    db.refresh(db_meeting)
+    return db_meeting
 
 
-def get_meeting_by_id(meeting_id: int):
-    if meeting_id not in meetings:
+def get_all_meetings(db: Session):
+    return db.query(MeetingModel).all()
+
+
+def get_meeting_by_id(db: Session, meeting_id: int):
+    meeting = db.query(MeetingModel).filter(MeetingModel.id == meeting_id).first()
+    if not meeting:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Meeting not found"
         )
-
-    return meetings[meeting_id]
-
-
-def update_meeting(meeting_id: int, meeting_data):
-
-    if meeting_id not in meetings:
-        raise HTTPException(
-            status_code=404,
-            detail="Meeting not found"
-        )
-
-    meetings[meeting_id] = {
-        "id": meeting_id,
-        "title": meeting_data.title,
-        "transcript": meeting_data.transcript
-    }
-
-    return meetings[meeting_id]
+    return meeting
 
 
-def delete_meeting(meeting_id: int):
+def update_meeting(db: Session, meeting_id: int, meeting_data: MeetingCreate):
+    meeting = get_meeting_by_id(db, meeting_id)
+    meeting.title = meeting_data.title
+    meeting.transcript = meeting_data.transcript
+    db.commit()
+    db.refresh(meeting)
+    return meeting
 
-    if meeting_id not in meetings:
-        raise HTTPException(
-            status_code=404,
-            detail="Meeting not found"
-        )
 
-    deleted_meeting = meetings.pop(meeting_id)
-
+def delete_meeting(db: Session, meeting_id: int):
+    meeting = get_meeting_by_id(db, meeting_id)
+    db.delete(meeting)
+    db.commit()
     return {
         "message": "Meeting deleted successfully",
-        "data": deleted_meeting
+        "data": {
+            "id": meeting.id,
+            "title": meeting.title
+        }
     }
 
 
-def search_meeting(keyword: str):
-    results = []
-
-    for meeting in meetings.values():
-
-        if (
-            keyword.lower() in meeting["title"].lower()
-            or keyword.lower() in meeting["transcript"].lower()
-        ):
-            results.append(meeting)
-
-    return results
+def search_meeting(db: Session, keyword: str):
+    search_pattern = f"%{keyword}%"
+    return db.query(MeetingModel).filter(
+        MeetingModel.title.like(search_pattern)
+        | MeetingModel.transcript.like(search_pattern)
+    ).all()
