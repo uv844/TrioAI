@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Intelligence AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #101827;
+            color: white;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        header {
+            margin-bottom: 22px;
+        }
+
+        header h1 {
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #aab7cc;
+        }
+
+        .chat-box {
+            height: 480px;
+            overflow-y: auto;
+            background: #1c293b;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .message {
+            padding: 14px 17px;
+            border-radius: 12px;
+            margin: 14px 0;
+            max-width: 85%;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .user {
+            background: #2459a6;
+            margin-left: auto;
+        }
+
+        .bot {
+            background: #303f53;
+            margin-right: auto;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 15px;
+            border-radius: 9px;
+            border: 1px solid #52637b;
+            background: #1c293b;
+            color: white;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 9px;
+            background: #3277e8;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 12px;
+            color: #aab7cc;
+            font-size: 13px;
+        }
+
+        .clear-btn {
+            background: #39485c;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <header>
+            <h1>Meeting Intelligence AI</h1>
+            <p>AI-powered meeting assistant using RAG and GPT-5 Chat</p>
+        </header>
+
+        <div class="chat-box" id="chatBox">
+            <div class="message bot">
+                Hello! I am your Meeting Intelligence Assistant.
+
+                You can ask me about:
+                - Meeting discussions
+                - Action items
+                - Task ownership
+                - Project deadlines
+                - Meeting decisions
+
+                How can I help you?
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input
+                type="text"
+                id="question"
+                placeholder="Ask something about your meeting..."
+            >
+
+            <button id="sendBtn" onclick="askQuestion()">
+                Send
+            </button>
+        </div>
+
+        <div class="status" id="status">
+            Ready to answer your questions.
+        </div>
+
+        <button class="clear-btn" onclick="clearChat()">
+            Clear Chat
+        </button>
+
+    </div>
+
+    <script>
+        async function askQuestion() {
+
+            const input = document.getElementById("question");
+            const sendBtn = document.getElementById("sendBtn");
+            const chatBox = document.getElementById("chatBox");
+            const status = document.getElementById("status");
+
+            const question = input.value.trim();
+
+            if (!question) {
+                status.textContent = "Please enter a question.";
+                return;
+            }
+
+            // Display user message
+            const userMessage = document.createElement("div");
+            userMessage.className = "message user";
+            userMessage.textContent = question;
+            chatBox.appendChild(userMessage);
+
+            input.value = "";
+            sendBtn.disabled = true;
+            status.textContent = "Searching meeting transcript...";
+
+            // Loading message
+            const loading = document.createElement("div");
+            loading.className = "message bot";
+            loading.textContent = "Thinking...";
+            chatBox.appendChild(loading);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+
+                const response = await fetch("/rag/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        top_k: 4
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.detail || "Unable to get an answer."
+                    );
+                }
+
+                loading.textContent = data.answer;
+
+                status.textContent =
+                    "Answer generated using " +
+                    data.retrieved_chunks.length +
+                    " retrieved transcript chunks.";
+
+            } catch (error) {
+
+                loading.textContent = "Error: " + error.message;
+                status.textContent = "Something went wrong.";
+
+            } finally {
+
+                sendBtn.disabled = false;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                input.focus();
+
+            }
+        }
+
+        function clearChat() {
+
+            const chatBox = document.getElementById("chatBox");
+
+            chatBox.innerHTML = `
+                <div class="message bot">
+                    Chat cleared. Ask me a new meeting question!
+                </div>
+            `;
+
+            document.getElementById("status").textContent =
+                "Ready to answer your questions.";
+        }
+
+        document.getElementById("question").addEventListener(
+            "keydown",
+            function(event) {
+                if (event.key === "Enter") {
+                    askQuestion();
+                }
+            }
+        );
+    </script>
+</body>
+</html>
